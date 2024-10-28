@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+log/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Miscellaneous
+.idea/                  # Ignore JetBrains IDE files
+.vscode/                # Ignore VSCode workspace settings
+*.swp                   # Ignore swap files created by some editors
