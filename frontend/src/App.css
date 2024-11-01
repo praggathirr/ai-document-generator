@@ -1,38 +1,116 @@
+/* App.css */
+
+body {
+  background-color: #333; /* Dark gray background */
+  color: white; /* White text */
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Instructions Page Styling */
+.instructions-container {
+  width: 80%; /* Wider layout to uncenter the text */
+  margin: 0 auto;
+  padding: 20px;
+  text-align: left; /* Left-align the instructions */
+}
+
+.instructions-container h1 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center; /* Center only the title */
+}
+
+.instructions-container p,
+.instructions-container ol {
+  font-size: 1.2em; /* Increase font size for readability */
+  line-height: 1.6;
+}
+
+.instructions-container ol {
+  margin-left: 20px; /* Adjust the margin for the list */
+}
+
+/* Center the Start Button */
+.start-button-container {
+  display: flex;
+  justify-content: center; /* Center the button horizontally */
+  margin-top: 20px;
+}
+
+.start-button {
+  background-color: #007bff;
   color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2em;
 }
 
-.App-link {
-  color: #61dafb;
+.start-button:hover {
+  background-color: #0056b3;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.chat-container {
+  width: 80%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center; /* Center-align the content on the chat page */
+}
+
+.chat-container h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center; /* Center the title */
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  background-color: #444;
+  color: white;
+  font-size: 1em;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
+.send-button-container {
+  display: flex;
+  justify-content: center;
+}
+
+.send-button {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.send-button:hover {
+  background-color: #218838;
+}
+
+.response-container {
+  margin-top: 20px;
+}
+
+.response-container h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
 }
