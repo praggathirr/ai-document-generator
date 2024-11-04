@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 
-const Chat = () => {
+const Chat = ({ username }) => {
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
 
@@ -28,7 +28,7 @@ const Chat = () => {
 
   return (
     <div className="chat-container">
-      <h2>AI Document Generator Chat</h2>
+      <h2>Hi {username}</h2>
       <textarea
         value={input}
         onChange={handleInputChange}
@@ -36,9 +36,8 @@ const Chat = () => {
         rows="4"
         cols="50"
       />
-      <div className="send-button-container">
-        <button onClick={handleSend} className="send-button">Send</button>
-      </div>
+      <br />
+      <button onClick={handleSend} className="send-button">Send</button>
       <div className="response-container">
         <h3>Generated Response:</h3>
         <p>{response}</p>

@@ -6,7 +6,7 @@ const Instructions = () => {
   const navigate = useNavigate();
 
   const handleStart = () => {
-    navigate('/chat');
+    navigate('/topics');
   };
 
   return (
@@ -26,8 +26,9 @@ const Instructions = () => {
       <p>
         Once you’re ready, click the "Start" button below to begin creating your document.
       </p>
-      <div className="start-button-container">
-        <button onClick={handleStart} className="start-button">Start</button>
+      <div className="button-container">
+        <button onClick={() => navigate('/sign-in')} className="auth-button">Sign In</button>
+        <button onClick={() => navigate('/create-account')} className="auth-button">Create Account</button>
       </div>
     </div>
   );
