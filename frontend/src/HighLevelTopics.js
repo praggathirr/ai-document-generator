@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 
@@ -33,47 +33,95 @@ const topics = [
   "The process for training new employees, transient workers, returning employees, etc."
 ];
 
-const HighLevelTopics = () => {
-  const [selectedTopics, setSelectedTopics] = useState([]);
-  const navigate = useNavigate();
-
-  const handleCheckboxChange = (topic) => {
-    setSelectedTopics((prevSelected) =>
-      prevSelected.includes(topic)
-        ? prevSelected.filter((t) => t !== topic)
-        : [...prevSelected, topic]
+const HighLevelTopics = ({ username }) => {
+    const [selectedTopics, setSelectedTopics] = useState([]);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+  
+    useEffect(() => {
+      // Fetch existing checklist if needed
+      console.log("HighLevelTopics received username:", username); // Check username value
+      const fetchChecklist = async () => {
+        try {
+          const response = await fetch('http://localhost:5001/get-checklist', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username }),
+          });
+          const data = await response.json();
+          if (data.success) {
+            setSelectedTopics(data.checklist);
+          } else {
+            setError('Error fetching checklist');
+          }
+        } catch (error) {
+          console.error('Error fetching checklist:', error);
+          setError('An error occurred while fetching the checklist.');
+        }
+      };
+  
+      if (username) {
+        fetchChecklist();
+      }
+    }, [username]);
+  
+    const handleCheckboxChange = (topic) => {
+      setSelectedTopics((prevSelected) =>
+        prevSelected.includes(topic)
+          ? prevSelected.filter((t) => t !== topic)
+          : [...prevSelected, topic]
+      );
+    };
+  
+    const handleSaveChecklist = async () => {
+      console.log("Saving checklist for username:", username);
+      console.log("Checklist items to save:", selectedTopics);
+      try {
+        const response = await fetch('http://localhost:5001/save-checklist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, checklist: selectedTopics }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          navigate('/chat'); // Proceed to chat page after saving
+        } else {
+          setError('Error saving checklist');
+        }
+      } catch (error) {
+        console.error('Error saving checklist:', error);
+        setError('An error occurred while saving the checklist.');
+      }
+    };
+  
+    return (
+      <div className="topics-container">
+        <h2>High-Level Topics Checklist</h2>
+        <p>Please check off all topics that are necessary for your project:</p>
+        <ul className="topics-list">
+          {topics.map((topic, index) => (
+            <li key={index}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedTopics.includes(topic)}
+                  onChange={() => handleCheckboxChange(topic)}
+                />
+                {topic}
+              </label>
+            </li>
+          ))}
+        </ul>
+        <div className="next-button-container">
+          <button onClick={handleSaveChecklist} className="next-button">Save and Continue</button>
+        </div>
+        {error && <p className="error-message">{error}</p>}
+      </div>
     );
   };
-
-  const handleNext = () => {
-    // Save selected topics if needed (e.g., send to backend or store in state)
-    console.log("Selected topics:", selectedTopics);
-    navigate('/chat');
-  };
-
-  return (
-    <div className="topics-container">
-      <h2>High-Level Topics Checklist</h2>
-      <p>Please check off all topics that are necessary for your project:</p>
-      <ul className="topics-list">
-        {topics.map((topic, index) => (
-          <li key={index}>
-            <label>
-              <input
-                type="checkbox"
-                checked={selectedTopics.includes(topic)}
-                onChange={() => handleCheckboxChange(topic)}
-              />
-              <span>{topic}</span>
-            </label>
-          </li>
-        ))}
-      </ul>
-      <div className="next-button-container">
-        <button onClick={handleNext} className="next-button">Next</button>
-      </div>
-    </div>
-  );
-};
-
-export default HighLevelTopics;
+  
+  export default HighLevelTopics;

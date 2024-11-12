@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Instructions from './Instructions';
 import CreateAccount from './CreateAccount';
 import SignIn from './SignIn';
-import Chat from './Chat';
+import ProjectOverview from './ProjectOverview';
 import HighLevelTopics from './HighLevelTopics';
+import Chat from './Chat';
 import './App.css';
 
 function App() {
@@ -17,7 +18,8 @@ function App() {
           <Route path="/" element={<Instructions />} />
           <Route path="/create-account" element={<CreateAccount setUsername={setUsername} />} />
           <Route path="/sign-in" element={<SignIn setUsername={setUsername} />} />
-          <Route path="/topics" element={<HighLevelTopics />} />
+          <Route path="/overview" element={<ProjectOverview username={username} />} />
+          <Route path="/topics" element={<HighLevelTopics username={username} />} />
           <Route path="/chat" element={<Chat username={username} />} />
         </Routes>
       </div>

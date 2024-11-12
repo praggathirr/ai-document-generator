@@ -19,7 +19,7 @@ const SignIn = ({ setUsername }) => {
       const data = await response.json();
       if (data.success) {
         setUsername(inputUsername);
-        navigate('/topics');
+        navigate('/overview');
       } else {
         setError('Username not found. Please check your username or create a new account.');
       }

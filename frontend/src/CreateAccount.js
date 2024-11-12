@@ -19,7 +19,7 @@ const CreateAccount = ({ setUsername }) => {
       const data = await response.json();
       if (data.success) {
         setUsername(inputUsername);
-        navigate('/topics');
+        navigate('/overview');
       } else {
         setError('Username already exists. Please choose a different one.');
       }

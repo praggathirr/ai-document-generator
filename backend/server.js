@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const db = require('./db');
 
 dotenv.config();
 
@@ -41,29 +42,114 @@ app.post('/generate', async (req, res) => {
 app.post('/create-account', (req, res) => {
     const { username } = req.body;
 
-    // Check if the username already exists
-    if (users.has(username)) {
-        return res.status(400).json({ success: false, message: 'Username already exists' });
-    }
+    // Insert a new user if the username doesn't exist
+    const query = `INSERT INTO users (username) VALUES (?)`;
 
-    // Add the new username to the users set
-    users.add(username);
-    res.json({ success: true, message: 'Account created successfully' });
+    db.run(query, [username], function (err) {
+        if (err) {
+            return res.status(400).json({ success: false, message: 'Username already exists' });
+        }
+        res.json({ success: true, message: 'Account created successfully' });
+    });
 });
 
 // Endpoint to sign in with an existing account
 app.post('/sign-in', (req, res) => {
     const { username } = req.body;
 
-    // Check if the username exists in the users set
-    if (users.has(username)) {
-        return res.json({ success: true, message: 'Sign-in successful' });
-    }
-
-    // If username not found, return an error
-    res.status(400).json({ success: false, message: 'Username not found' });
+    // Check if the username exists
+    const query = `SELECT * FROM users WHERE username = ?`;
+    db.get(query, [username], (err, row) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'An error occurred' });
+        }
+        if (row) {
+            res.json({ success: true, message: 'Sign-in successful' });
+        } else {
+            res.status(400).json({ success: false, message: 'Username not found' });
+        }
+    });
 });
 
+// Endpoint to save checklist items for a user
+app.post('/save-checklist', (req, res) => {
+    const { username, checklist } = req.body;
+
+    // Get the user ID for the given username
+    const queryUserId = `SELECT id FROM users WHERE username = ?`;
+    db.get(queryUserId, [username], (err, row) => {
+        if (err || !row) {
+            return res.status(400).json({ success: false, message: 'User not found' });
+        }
+        const userId = row.id;
+
+        // Insert each checklist item for the user
+        const queryChecklist = `INSERT INTO checklists (user_id, item) VALUES (?, ?)`;
+        db.serialize(() => {
+            checklist.forEach((item) => {
+                db.run(queryChecklist, [userId, item], (err) => {
+                    if (err) {
+                        console.error("Error saving checklist item:", err.message);
+                    }
+                });
+            });
+        });
+        res.json({ success: true, message: 'Checklist saved successfully' });
+    });
+});
+
+// Endpoint to retrieve checklist items for a user
+app.post('/get-checklist', (req, res) => {
+    const { username } = req.body;
+
+    // Get the user ID for the given username
+    const queryUserId = `SELECT id FROM users WHERE username = ?`;
+    db.get(queryUserId, [username], (err, row) => {
+        if (err || !row) {
+            return res.status(400).json({ success: false, message: 'User not found' });
+        }
+        const userId = row.id;
+
+        // Retrieve the checklist items for the user
+        const queryChecklist = `SELECT item FROM checklists WHERE user_id = ?`;
+        db.all(queryChecklist, [userId], (err, rows) => {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'An error occurred' });
+            }
+            const checklist = rows.map(row => row.item);
+            res.json({ success: true, checklist });
+        });
+    });
+});
+
+// Endpoint to save or update the project overview
+app.post('/save-overview', (req, res) => {
+    const { username, projectOverview } = req.body;
+  
+    const query = `UPDATE users SET project_overview = ? WHERE username = ?`;
+    db.run(query, [projectOverview, username], function (err) {
+      if (err) {
+        console.error("Error saving project overview:", err.message);
+        return res.status(500).json({ success: false, message: 'Error saving project overview' });
+      }
+      res.json({ success: true, message: 'Project overview saved successfully' });
+    });
+  });
+  
+  // Endpoint to get the project overview for a user
+  app.post('/get-overview', (req, res) => {
+    const { username } = req.body;
+  
+    const query = `SELECT project_overview FROM users WHERE username = ?`;
+    db.get(query, [username], (err, row) => {
+      if (err) {
+        console.error("Error fetching project overview:", err.message);
+        return res.status(500).json({ success: false, message: 'Error fetching project overview' });
+      }
+      res.json({ success: true, projectOverview: row ? row.project_overview : '' });
+    });
+  });
+  
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
