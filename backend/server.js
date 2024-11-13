@@ -12,31 +12,6 @@ app.use(cors());
 
 const port = process.env.PORT || 5001;
 
-// In-memory storage for usernames
-const users = new Set();
-
-// Endpoint to generate document using OpenAI
-app.post('/generate', async (req, res) => {
-    const prompt = req.body.prompt;
-
-    try {
-        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 100,
-        }, {
-            headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        res.json(response.data.choices[0].message.content);
-    } catch (error) {
-        console.error("Error making OpenAI API request:", error.response ? error.response.data : error.message);
-        res.status(500).send("Error generating document.");
-    }
-});
 
 // Endpoint to create a new account
 app.post('/create-account', (req, res) => {
@@ -98,29 +73,23 @@ app.post('/save-checklist', (req, res) => {
     });
 });
 
-// Endpoint to retrieve checklist items for a user
+// Endpoint to get checklist of selected topics
 app.post('/get-checklist', (req, res) => {
     const { username } = req.body;
-
-    // Get the user ID for the given username
+  
     const queryUserId = `SELECT id FROM users WHERE username = ?`;
     db.get(queryUserId, [username], (err, row) => {
-        if (err || !row) {
-            return res.status(400).json({ success: false, message: 'User not found' });
-        }
-        const userId = row.id;
-
-        // Retrieve the checklist items for the user
-        const queryChecklist = `SELECT item FROM checklists WHERE user_id = ?`;
-        db.all(queryChecklist, [userId], (err, rows) => {
-            if (err) {
-                return res.status(500).json({ success: false, message: 'An error occurred' });
-            }
-            const checklist = rows.map(row => row.item);
-            res.json({ success: true, checklist });
-        });
+      if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+      const userId = row.id;
+  
+      const query = `SELECT topic FROM selected_topics WHERE user_id = ?`;
+      db.all(query, [userId], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: 'Error fetching topics' });
+        const topics = rows.map((row) => row.topic);
+        res.json({ success: true, checklist: topics });
+      });
     });
-});
+  });
 
 // Endpoint to save or update the project overview
 app.post('/save-overview', (req, res) => {
@@ -134,10 +103,10 @@ app.post('/save-overview', (req, res) => {
       }
       res.json({ success: true, message: 'Project overview saved successfully' });
     });
-  });
+});
   
   // Endpoint to get the project overview for a user
-  app.post('/get-overview', (req, res) => {
+app.post('/get-overview', (req, res) => {
     const { username } = req.body;
   
     const query = `SELECT project_overview FROM users WHERE username = ?`;
@@ -148,9 +117,124 @@ app.post('/save-overview', (req, res) => {
       }
       res.json({ success: true, projectOverview: row ? row.project_overview : '' });
     });
-  });
+});
   
-// Start the server
+
+// Endpoint to save selected topics
+app.post('/save-selected-topics', (req, res) => {
+    const { username, topics } = req.body;
+    if (!Array.isArray(topics)) {
+        return res.status(400).json({ success: false, message: 'Topics must be an array' });
+      }
+    const queryUserId = `SELECT id FROM users WHERE username = ?`;
+    db.get(queryUserId, [username], (err, row) => {
+      if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+      const userId = row.id;
+  
+      const query = `INSERT INTO selected_topics (user_id, topic) VALUES (?, ?)`;
+      db.serialize(() => {
+        // Delete all previously saved topics for this user
+        db.run(`DELETE FROM selected_topics WHERE user_id = ?`, [userId]);
+  
+        // Insert each newly selected topic for this user
+        topics.forEach((topic) => db.run(query, [userId, topic]));
+  
+        res.json({ success: true, message: 'Selected topics saved successfully' });
+      });
+    });
+});
+  
+  
+// Endpoint to save subtopic responses
+app.post('/save-subtopic-response', (req, res) => {
+const { username, topic, subtopic, response } = req.body;
+
+const queryUserId = `SELECT id FROM users WHERE username = ?`;
+db.get(queryUserId, [username], (err, row) => {
+    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+    const userId = row.id;
+
+    const query = `INSERT INTO subtopic_responses (user_id, topic, subtopic, response) VALUES (?, ?, ?, ?)
+                    ON CONFLICT(user_id, topic, subtopic) DO UPDATE SET response = ?`;
+    db.run(query, [userId, topic, subtopic, response, response], (err) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error saving subtopic response' });
+    res.json({ success: true, message: 'Subtopic response saved successfully' });
+    });
+});
+});
+
+// Endpoint to get selected topics for a user
+app.post('/get-selected-topics', (req, res) => {
+const { username } = req.body;
+
+const queryUserId = `SELECT id FROM users WHERE username = ?`;
+db.get(queryUserId, [username], (err, row) => {
+    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+    const userId = row.id;
+
+    const query = `SELECT topic FROM selected_topics WHERE user_id = ?`;
+    db.all(query, [userId], (err, rows) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error fetching topics' });
+    const topics = rows.map((row) => row.topic);
+    res.json({ success: true, topics });
+    });
+});
+});
+
+// Endpoint to get subtopic responses for a user and topic
+app.post('/get-subtopic-responses', (req, res) => {
+const { username, topic } = req.body;
+
+const queryUserId = `SELECT id FROM users WHERE username = ?`;
+db.get(queryUserId, [username], (err, row) => {
+    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+    const userId = row.id;
+
+    const query = `SELECT subtopic, response FROM subtopic_responses WHERE user_id = ? AND topic = ?`;
+    db.all(query, [userId, topic], (err, rows) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error fetching subtopic responses' });
+    const responses = rows.reduce((acc, row) => ({ ...acc, [row.subtopic]: row.response }), {});
+    res.json({ success: true, responses });
+    });
+});
+});
+
+// Endpoint to generate document based on user's responses
+app.post('/generate-document', async (req, res) => {
+const { username } = req.body;
+
+const queryUserId = `SELECT id FROM users WHERE username = ?`;
+db.get(queryUserId, [username], async (err, row) => {
+    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+    const userId = row.id;
+
+    const query = `SELECT topic, subtopic, response FROM subtopic_responses WHERE user_id = ?`;
+    db.all(query, [userId], async (err, rows) => {
+    if (err) return res.status(500).json({ success: false, message: 'Error fetching responses' });
+
+    const content = rows.map((row) => `${row.topic} - ${row.subtopic}: ${row.response}`).join('\n');
+
+    try {
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content }],
+        max_tokens: 1000,
+        }, {
+        headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        });
+
+        res.json({ success: true, document: response.data.choices[0].message.content });
+    } catch (error) {
+        console.error("Error generating document:", error.response ? error.response.data : error.message);
+        res.status(500).send("Error generating document.");
+    }
+    });
+});
+});
+
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+console.log(`Server is running on port ${port}`);
 });

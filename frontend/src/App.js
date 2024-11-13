@@ -5,7 +5,9 @@ import CreateAccount from './CreateAccount';
 import SignIn from './SignIn';
 import ProjectOverview from './ProjectOverview';
 import HighLevelTopics from './HighLevelTopics';
-import Chat from './Chat';
+import SelectedTopics from './SelectedTopics';
+import SubtopicQuestions from './SubtopicQuestions';
+import GeneratedDocument from './GeneratedDocument';
 import './App.css';
 
 function App() {
@@ -20,7 +22,9 @@ function App() {
           <Route path="/sign-in" element={<SignIn setUsername={setUsername} />} />
           <Route path="/overview" element={<ProjectOverview username={username} />} />
           <Route path="/topics" element={<HighLevelTopics username={username} />} />
-          <Route path="/chat" element={<Chat username={username} />} />
+          <Route path="/selected-topics" element={<SelectedTopics username={username} />} />
+          <Route path="/topic/:topic" element={<SubtopicQuestions username={username} />} />
+          <Route path="/generated-document" element={<GeneratedDocument />} />
         </Routes>
       </div>
     </Router>

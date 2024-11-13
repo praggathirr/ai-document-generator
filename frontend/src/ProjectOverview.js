@@ -55,7 +55,7 @@ const ProjectOverview = ({ username }) => {
     <div className="overview-container">
       <h2 className="overview-title">Project Overview</h2>
       <textarea
-        value={projectOverview}
+        value={projectOverview || ''}
         onChange={handleOverviewChange}
         placeholder="Enter a high-level overview of your project"
         rows="6"

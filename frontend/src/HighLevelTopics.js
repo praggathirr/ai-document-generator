@@ -79,16 +79,16 @@ const HighLevelTopics = ({ username }) => {
       console.log("Saving checklist for username:", username);
       console.log("Checklist items to save:", selectedTopics);
       try {
-        const response = await fetch('http://localhost:5001/save-checklist', {
+        const response = await fetch('http://localhost:5001/save-selected-topics', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username, checklist: selectedTopics }),
+          body: JSON.stringify({ username, topics: selectedTopics }),
         });
         const data = await response.json();
         if (data.success) {
-          navigate('/chat'); // Proceed to chat page after saving
+          navigate('/selected-topics'); // Proceed to chat page after saving
         } else {
           setError('Error saving checklist');
         }

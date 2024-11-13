@@ -11,10 +11,21 @@ db.serialize(() => {
   `);
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS checklists (
+    CREATE TABLE IF NOT EXISTS selected_topics (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER,
-      item TEXT,
+      topic TEXT,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS subtopic_responses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      topic TEXT,
+      subtopic TEXT,
+      response TEXT,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
