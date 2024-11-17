@@ -144,24 +144,34 @@ app.post('/save-selected-topics', (req, res) => {
     });
 });
   
-  
+
 // Endpoint to save subtopic responses
-app.post('/save-subtopic-response', (req, res) => {
-const { username, topic, subtopic, response } = req.body;
-
-const queryUserId = `SELECT id FROM users WHERE username = ?`;
-db.get(queryUserId, [username], (err, row) => {
-    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
-    const userId = row.id;
-
-    const query = `INSERT INTO subtopic_responses (user_id, topic, subtopic, response) VALUES (?, ?, ?, ?)
-                    ON CONFLICT(user_id, topic, subtopic) DO UPDATE SET response = ?`;
-    db.run(query, [userId, topic, subtopic, response, response], (err) => {
-    if (err) return res.status(500).json({ success: false, message: 'Error saving subtopic response' });
-    res.json({ success: true, message: 'Subtopic response saved successfully' });
+app.post('/save-subtopic-responses', (req, res) => {
+    const { username, topic, responses } = req.body;
+    if (!username || !topic || !responses) {
+      return res.status(400).json({ success: false, message: 'Missing data' });
+    }
+  
+    const queryUserId = `SELECT id FROM users WHERE username = ?`;
+    db.get(queryUserId, [username], (err, row) => {
+      if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+      const userId = row.id;
+  
+      db.serialize(() => {
+        // Delete existing responses for the topic to avoid duplicates
+        db.run(`DELETE FROM subtopic_responses WHERE user_id = ? AND topic = ?`, [userId, topic]);
+  
+        // Insert each subtopic response into the database
+        const insertQuery = `INSERT INTO subtopic_responses (user_id, topic, subtopic, response) VALUES (?, ?, ?, ?)`;
+        for (const [subtopic, response] of Object.entries(responses)) {
+          db.run(insertQuery, [userId, topic, subtopic, response]);
+        }
+  
+        res.json({ success: true, message: 'Responses saved successfully' });
+      });
     });
-});
-});
+  });
+  
 
 // Endpoint to get selected topics for a user
 app.post('/get-selected-topics', (req, res) => {
@@ -178,61 +188,171 @@ db.get(queryUserId, [username], (err, row) => {
     const topics = rows.map((row) => row.topic);
     res.json({ success: true, topics });
     });
-});
+  });
 });
 
-// Endpoint to get subtopic responses for a user and topic
+// Endpoint to get subtopic responses
 app.post('/get-subtopic-responses', (req, res) => {
-const { username, topic } = req.body;
-
-const queryUserId = `SELECT id FROM users WHERE username = ?`;
-db.get(queryUserId, [username], (err, row) => {
-    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
-    const userId = row.id;
-
-    const query = `SELECT subtopic, response FROM subtopic_responses WHERE user_id = ? AND topic = ?`;
-    db.all(query, [userId, topic], (err, rows) => {
-    if (err) return res.status(500).json({ success: false, message: 'Error fetching subtopic responses' });
-    const responses = rows.reduce((acc, row) => ({ ...acc, [row.subtopic]: row.response }), {});
-    res.json({ success: true, responses });
+    const { username, topic } = req.body;
+    if (!username || !topic) {
+      return res.status(400).json({ success: false, message: 'Missing data' });
+    }
+  
+    const queryUserId = `SELECT id FROM users WHERE username = ?`;
+    db.get(queryUserId, [username], (err, row) => {
+      if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+      const userId = row.id;
+  
+      const selectQuery = `SELECT subtopic, response FROM subtopic_responses WHERE user_id = ? AND topic = ?`;
+      db.all(selectQuery, [userId, topic], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: 'Error retrieving responses' });
+  
+        // Convert rows to an object where keys are subtopics and values are responses
+        const responses = {};
+        rows.forEach(row => {
+          responses[row.subtopic] = row.response;
+        });
+  
+        res.json({ success: true, responses });
+      });
     });
 });
-});
+  
 
-// Endpoint to generate document based on user's responses
-app.post('/generate-document', async (req, res) => {
-const { username } = req.body;
+// // Endpoint to generate the quality management document
+// app.post('/generate-document', (req, res) => {
+//   const { username } = req.body;
 
-const queryUserId = `SELECT id FROM users WHERE username = ?`;
-db.get(queryUserId, [username], async (err, row) => {
-    if (err || !row) return res.status(400).json({ success: false, message: 'User not found' });
+//   if (!username) {
+//       return res.status(400).json({ success: false, message: 'Username is required' });
+//   }
+
+//   // Retrieve the user ID based on the username
+//   const queryUserId = `SELECT id FROM users WHERE username = ?`;
+//   db.get(queryUserId, [username], (err, row) => {
+//       if (err || !row) {
+//       console.error("User not found or database error:", err);
+//       return res.status(400).json({ success: false, message: 'User not found' });
+//       }
+//       const userId = row.id;
+
+//       // Retrieve all subtopic responses for the selected topics of this user
+//       const selectQuery = `SELECT topic, subtopic, response FROM subtopic_responses WHERE user_id = ?`;
+//       db.all(selectQuery, [userId], async (err, rows) => {
+//       if (err) {
+//           console.error("Error retrieving responses:", err);
+//           return res.status(500).json({ success: false, message: 'Error retrieving responses' });
+//       }
+
+//       // Organize responses by topic and subtopic
+//       const documentContent = {};
+//       rows.forEach(row => {
+//           if (!documentContent[row.topic]) {
+//           documentContent[row.topic] = [];
+//           }
+//           documentContent[row.topic].push({ subtopic: row.subtopic, response: row.response });
+//       });
+
+//       // Format the document content into a structured text
+//       let prompt = `Create a quality management plan based on the following topics and responses:\n\n`;
+//       for (const [topic, subtopics] of Object.entries(documentContent)) {
+//           prompt += `\n## ${topic}\n`;
+//           subtopics.forEach(({ subtopic, response }) => {
+//           prompt += `\n- **${subtopic}**: ${response || 'No response provided.'}\n`;
+//           });
+//       }
+
+//       try {
+//           // Send the document content to OpenAI to generate a refined document
+//           const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+//           model: "gpt-4o-mini",
+//           messages: [{ role: "user", content: prompt }],
+//           max_tokens: 4000,
+//           }, {
+//           headers: {
+//               'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+//               'Content-Type': 'application/json',
+//           }
+//           });
+
+//           // Return the generated document to the client
+//           res.json({ success: true, document: response.data.choices[0].message.content });
+//       } catch (error) {
+//           console.error("Error generating document:", error.response ? error.response.data : error.message);
+//           res.status(500).json({ success: false, message: 'Error generating document' });
+//       }
+//       });
+//   });
+// });
+
+// Endpoint to generate the quality management document
+app.post('/generate-document', (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ success: false, message: 'Username is required' });
+  }
+
+  // Retrieve the user ID and project overview based on the username
+  const queryUser = `SELECT id, project_overview FROM users WHERE username = ?`;
+  db.get(queryUser, [username], (err, row) => {
+    if (err || !row) {
+      console.error("User not found or database error:", err);
+      return res.status(400).json({ success: false, message: 'User not found' });
+    }
+
     const userId = row.id;
+    const projectOverview = row.project_overview || "No project overview provided.";
 
-    const query = `SELECT topic, subtopic, response FROM subtopic_responses WHERE user_id = ?`;
-    db.all(query, [userId], async (err, rows) => {
-    if (err) return res.status(500).json({ success: false, message: 'Error fetching responses' });
+    // Retrieve all subtopic responses for the selected topics of this user
+    const selectQuery = `SELECT topic, subtopic, response FROM subtopic_responses WHERE user_id = ?`;
+    db.all(selectQuery, [userId], async (err, rows) => {
+      if (err) {
+        console.error("Error retrieving responses:", err);
+        return res.status(500).json({ success: false, message: 'Error retrieving responses' });
+      }
 
-    const content = rows.map((row) => `${row.topic} - ${row.subtopic}: ${row.response}`).join('\n');
+      // Organize responses by topic and subtopic
+      const documentContent = {};
+      rows.forEach(row => {
+        if (!documentContent[row.topic]) {
+          documentContent[row.topic] = [];
+        }
+        documentContent[row.topic].push({ subtopic: row.subtopic, response: row.response });
+      });
 
-    try {
+      // Format the document content into a structured prompt with project overview
+      let prompt = `Create a quality management plan for the project overview and selected topics below.\n\n`;
+      prompt += `## Project Overview\n${projectOverview}\n\n`;
+
+      for (const [topic, subtopics] of Object.entries(documentContent)) {
+        prompt += `\n## ${topic}\n`;
+        subtopics.forEach(({ subtopic, response }) => {
+          prompt += `\n- **${subtopic}**: ${response || 'No response provided.'}\n`;
+        });
+      }
+
+      try {
+        // Send the document content to OpenAI to generate a refined document
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content }],
-        max_tokens: 1000,
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 1000,
         }, {
-        headers: {
+          headers: {
             'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
-        },
+          }
         });
 
+        // Return the generated document to the client
         res.json({ success: true, document: response.data.choices[0].message.content });
-    } catch (error) {
+      } catch (error) {
         console.error("Error generating document:", error.response ? error.response.data : error.message);
-        res.status(500).send("Error generating document.");
-    }
+        res.status(500).json({ success: false, message: 'Error generating document' });
+      }
     });
-});
+  });
 });
 
 app.listen(port, () => {

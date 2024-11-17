@@ -363,3 +363,84 @@ textarea {
   color: #000;
   text-decoration: underline;
 }
+
+/* App.css */
+
+/* Container for Generated Document */
+.generated-document-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+
+/* Title */
+.generated-document-container h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Error Message Styling */
+.error-message {
+  color: red;
+  font-weight: bold;
+}
+
+/* Document Content Styling */
+.document-content {
+  background-color: #a4a0a0;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 700px;
+  margin: 0 auto;
+  height: 500px; /* Fixed height for scrollable content */
+  overflow-y: auto; /* Makes the content scrollable vertically */
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.6;
+  text-align: left;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for Markdown Elements */
+.document-content h2,
+.document-content h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.document-content ul {
+  margin-left: 20px;
+  list-style-type: disc;
+}
+
+.document-content ol {
+  margin-left: 20px;
+  list-style-type: decimal;
+}
+
+.document-content p {
+  margin: 10px 0;
+}
+
+.document-content strong {
+  font-weight: bold;
+}
+
+.document-content em {
+  font-style: italic;
+}
+
+.document-content pre {
+  background-color: #e8e8e8;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  overflow-x: auto;
+}
+
+
