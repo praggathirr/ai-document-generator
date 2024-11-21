@@ -59,8 +59,6 @@ const GeneratedDocument = () => {
         <p className="error-message">{error}</p>
       ) : (
         <>
-          <h3>Project Overview</h3>
-          <p className="project-overview">{projectOverview}</p>
           <div className="document-content">
             {/* Use ReactMarkdown to render the document content */}
             <ReactMarkdown>{documentContent}</ReactMarkdown>

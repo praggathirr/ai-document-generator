@@ -8,14 +8,21 @@ import HighLevelTopics from './HighLevelTopics';
 import SelectedTopics from './SelectedTopics';
 import SubtopicQuestions from './SubtopicQuestions';
 import GeneratedDocument from './GeneratedDocument';
+import Header from './Header';
 import './App.css';
 
 function App() {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(null);
+
+  const handleLogout = () => {
+    setUsername(null); // Clear the username
+    window.location.href = '/'; // Redirect to Instructions page
+  };
 
   return (
     <Router>
       <div className="App">
+        <Header username={username} onLogout={handleLogout} />
         <Routes>
           <Route path="/" element={<Instructions />} />
           <Route path="/create-account" element={<CreateAccount setUsername={setUsername} />} />
