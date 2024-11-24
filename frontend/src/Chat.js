@@ -11,7 +11,7 @@ const Chat = ({ username }) => {
 
   const handleSend = async () => {
     try {
-      const res = await fetch('http://localhost:5001/generate', {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

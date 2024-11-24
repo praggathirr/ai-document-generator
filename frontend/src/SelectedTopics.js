@@ -9,7 +9,7 @@ const SelectedTopics = ({ username }) => {
 
   useEffect(() => {
     const fetchTopics = async () => {
-      const response = await fetch('http://localhost:5001/get-selected-topics', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/get-selected-topics`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
@@ -21,7 +21,7 @@ const SelectedTopics = ({ username }) => {
   }, [username]);
 
   const handleGenerateDocument = async () => {
-    const response = await fetch('http://localhost:5001/generate-document', {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/generate-document`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username }),

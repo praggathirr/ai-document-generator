@@ -43,7 +43,7 @@ const HighLevelTopics = ({ username }) => {
       console.log("HighLevelTopics received username:", username); // Check username value
       const fetchChecklist = async () => {
         try {
-          const response = await fetch('http://localhost:5001/get-checklist', {
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/get-checklist`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const HighLevelTopics = ({ username }) => {
       console.log("Saving checklist for username:", username);
       console.log("Checklist items to save:", selectedTopics);
       try {
-        const response = await fetch('http://localhost:5001/save-selected-topics', {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/save-selected-topics`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

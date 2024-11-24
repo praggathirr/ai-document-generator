@@ -8,7 +8,10 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://incandescent-elf-fb475e.netlify.app/', // Replace with your actual Netlify URL
+  methods: ['GET', 'POST'],
+}));
 
 const port = process.env.PORT || 5001;
 

@@ -12,7 +12,7 @@ const ProjectOverview = ({ username }) => {
     // Fetch existing project overview if available
     const fetchProjectOverview = async () => {
       try {
-        const response = await fetch('http://localhost:5001/get-overview', {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/get-overview`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username }),
@@ -40,7 +40,7 @@ const ProjectOverview = ({ username }) => {
     setProjectOverview(updatedOverview);
 
     try {
-      await fetch('http://localhost:5001/save-overview', {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL}/save-overview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, projectOverview: updatedOverview }),

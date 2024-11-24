@@ -9,7 +9,7 @@ const CreateAccount = ({ setUsername }) => {
 
   const handleCreateAccount = async () => {
     try {
-      const response = await fetch('http://localhost:5001/create-account', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/create-account`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

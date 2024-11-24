@@ -95,7 +95,7 @@ const SubtopicQuestions = ({ username }) => {
   useEffect(() => {
     const fetchResponses = async () => {
       try {
-        const response = await fetch('http://localhost:5001/get-subtopic-responses', {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/get-subtopic-responses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, topic }),
@@ -125,7 +125,7 @@ const SubtopicQuestions = ({ username }) => {
   // Save responses to the backend when going back to topics
   const saveResponses = async () => {
     try {
-      await fetch('http://localhost:5001/save-subtopic-responses', {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL}/save-subtopic-responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, topic, responses }),

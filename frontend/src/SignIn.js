@@ -9,13 +9,14 @@ const SignIn = ({ setUsername }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await fetch('http://localhost:5001/sign-in', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/sign-in`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username: inputUsername }),
       });
+      console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
       const data = await response.json();
       if (data.success) {
         setUsername(inputUsername);
