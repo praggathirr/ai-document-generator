@@ -8,9 +8,24 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
+// Define your allowed origins (ensure no trailing slashes here)
+const allowedOrigins = [
+  'https://incandescent-elf-fb475e.netlify.app', // Netlify Frontend URL
+  'http://localhost:3000', // Local Development
+];
+
+// CORS middleware
 app.use(cors({
-  origin: 'https://incandescent-elf-fb475e.netlify.app/', // Replace with your actual Netlify URL
-  methods: ['GET', 'POST'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST'], // Allow these HTTP methods
+  credentials: true,        // Allow cookies if needed
 }));
 
 const port = process.env.PORT || 5001;
