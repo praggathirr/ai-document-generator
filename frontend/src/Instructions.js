@@ -5,9 +5,6 @@ import './App.css';
 const Instructions = () => {
   const navigate = useNavigate();
 
-  const handleStart = () => {
-    navigate('/topics');
-  };
 
   return (
     <div className="instructions-container">
