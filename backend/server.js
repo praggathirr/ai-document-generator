@@ -340,15 +340,15 @@ app.post('/generate-document', (req, res) => {
       });
 
       // Format the document content into a structured prompt with project overview
-      let prompt = `Create a detailed quality management plan for the project overview and selected topics below and add necessary details for each topic. If no response provided for a topic/subtopic, fill it in appropriately using context. Make sure each section title is the appropriate topic title including project overview. Don't add additional topics.\n\n`;
-      prompt += `## Project Overview\n${projectOverview}\n\n`;
+      let prompt = `Create a detailed quality assurance document for the following project. Include only the provided project overview and the selected high-level topics. Do not add any other topics. For subtopics without responses, provide appropriate content using context based on the project overview and topic title.\n\n`;
+        prompt += `## Project Overview\n${projectOverview}\n\n`;
 
-      for (const [topic, subtopics] of Object.entries(documentContent)) {
-        prompt += `\n## ${topic}\n`;
-        subtopics.forEach(({ subtopic, response }) => {
-          prompt += `\n- **${subtopic}**: ${response || 'No response provided.'}\n`;
-        });
-      }
+        for (const [topic, subtopics] of Object.entries(documentContent)) {
+          prompt += `\n## ${topic}\n`;
+          subtopics.forEach(({ subtopic, response }) => {
+            prompt += `\n- **${subtopic}**: ${response || 'No response provided.'}\n`;
+          });
+        }
 
       try {
         // Send the document content to OpenAI to generate a refined document
